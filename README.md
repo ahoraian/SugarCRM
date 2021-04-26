@@ -15,6 +15,8 @@ Used libraries:
     docker-compose up -d
 
     docker exec -it php8 composer install
+    
+    cp .env.example .env
 ``` 
 After this PHP runs on http://0.0.0.0:8000 or 
 http://localhost:8000
