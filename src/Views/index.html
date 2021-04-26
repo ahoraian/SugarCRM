@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MyCRM</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body style="padding: 15px;">
+    <div>
+        <form action="/index.php" method="get">
+            Minimum Opportunities amount:
+            <input type="text" name="amount" value="<?php echo $this->amount ?>"/>
+            <button>
+                >=
+            </button>
+        </form>
+    </div>
+    <div id="map-div" style="width: 100%; height: 500px; margin-top: 15px;"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script defer>
+    const accounts = <?php echo $this->accounts ?>;
+    const zoom = 4;
+    const map = new OpenLayers.Map('map-div');
+
+    map.addLayer(new OpenLayers.Layer.OSM());
+    map.setCenter('', zoom);
+
+    if (accounts.length) {
+        accounts.forEach(function (account) {
+            let addressArray = [
+                account.billing_address_street,
+                account.billing_address_city
+            ];
+            let address = addressArray.join(',');
+
+            fetch('https://photon.komoot.io/api/?q=' + address)
+                .then(res => res.json())
+                .then(data => {
+                    if (typeof data.features != 'undefined' && data.features.length) {
+                        const coords = data.features[0].geometry.coordinates;
+                        addMarker(coords, account);
+                    }
+                });
+        });
+    } else {
+        jQuery('#map-div').after('<div class="alert alert-danger mt-2">No opportunities found.</div>');
+    }
+
+    function selectMarker(event, account) {
+        const element = event.target;
+        const opportunities = account.opportunities;
+        let opportunitiesHtml = '';
+
+        jQuery('.account-details').remove();
+        if (opportunities) {
+            jQuery.map(opportunities, function (item) {
+                opportunitiesHtml +=
+                    '<div class="row">' +
+                        '<div class="col-md-6"><strong>Opportunity Name:</strong> ' + item.name + '</div>' +
+                        '<div class="col-md-6">' + Math.round(item.amount) + '€</div>' +
+                    '</div>'
+            });
+        }
+
+        jQuery('.olAlphaImg').attr('src', 'http://www.openlayers.org/api/img/marker.png');
+        jQuery(element).attr('src', 'http://www.openlayers.org/api/img/marker-blue.png');
+        jQuery('#map-div')
+            .after(
+                '<div class="account-details alert alert-info mt-2">' +
+                    '<div><strong>Company name: </strong>' + account.name + '</div>' +
+                    '<div><strong>Full address: </strong>' + account.billing_address_postalcode + ', ' +
+                    ',' + account.billing_address_street +
+                    ',' + account.billing_address_city +
+                    ',' + account.billing_address_state +
+                    ',' + account.billing_address_country + '</div>' + opportunitiesHtml +
+                '</div>'
+            );
+    }
+
+    function addMarker(coords, account) {
+        var lonLat = new OpenLayers.LonLat(coords[0], coords[1])
+            .transform(
+                new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                map.getProjectionObject() // to Spherical Mercator Projection
+            );
+
+
+        var layer = new OpenLayers.Layer.Markers("Markers");
+        map.addLayer(layer);
+
+        layer.addMarker(new OpenLayers.Marker(lonLat));
+        layer.events.register( 'click', layer, function(event) {
+            selectMarker(event, account);
+        });
+
+        map.setCenter(lonLat, zoom);
+    }
+</script>
+</body>
+</html>

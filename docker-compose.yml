@@ -1,0 +1,20 @@
+version: '3.0'
+
+services:
+  php:
+    build:
+      args:
+        user: salah
+        uid: 1000
+      context: ""
+      dockerfile: docker/Dockerfile
+    container_name: php8
+    working_dir: /var/www/
+    environment:
+      PHP_INI_SCAN_DIR: ./docker/:/usr/local/etc/php/conf.d
+    command: php -S 0.0.0.0:8000 -t public/
+    volumes:
+      - ./:/var/www/
+      - ./docker/:/usr/local/etc/php/custom.d
+    ports:
+      - "8000:8000"

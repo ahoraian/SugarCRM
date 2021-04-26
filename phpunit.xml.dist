@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" colors="true" verbose="true" bootstrap="./tests/bootstrap.php" beStrictAboutOutputDuringTests="true" beStrictAboutTodoAnnotatedTests="true" beStrictAboutResourceUsageDuringSmallTests="true">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">./Unit</directory>
+    </include>
+    <exclude>
+      <directory>./build</directory>
+      <directory>./tests</directory>
+      <directory>./vendor</directory>
+    </exclude>
+  </coverage>
+  <php>
+    <server name="APP_ENV" value="testing"/>
+    <server name="SESSION_DRIVER" value="array"/>
+  </php>  <testsuites>
+    <testsuite name="assignment test suite">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
